@@ -51,7 +51,7 @@ freqResFlag=int(fs/(freqRes*fc))>=nVec
 
 # generate initial signals
 sigOrig=np.cos(2*np.pi*np.cumsum(fVec))
-noiseVec=np.sqrt(nPwr)*np.random.normal(0.0,0.707,nVec)
+noiseVec=np.random.normal(0.0,np.sqrt(nPwr),nVec)
 sigAWGN=sigOrig+noiseVec
 
 # build FIR lowpass filter
