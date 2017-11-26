@@ -36,16 +36,18 @@ import matplotlib.pyplot as plt
 import scipy.signal as scpSignal
 
 # setup input parameters
-fs=1.0e6                # sampling rate, Hz
+fs=100.0e3              # sampling rate, Hz
 fc=50.0                 # center frequency, Hz
-tDur=0.1                # Sim time, sec
-nPwr=1.0                # Signal power, W
-plotFactor=int(1.5e3)   # Plotting downsampling factor
+tDur=1.0                # Sim time, sec
+nPwr=0.5e1              # Signal power, W
+freqRes=2.0e-1          # Frequency resolution multiplier
+plotFactor=int(2.0e2)   # Plotting downsampling factor
 
 # establish relevant vectors for signal construction
 nVec=int(fs*tDur)
 fVec=np.linspace(fc/fs,fc/fs,nVec)
 tVec=np.linspace(0,(nVec-1)/fs,nVec)
+freqResFlag=int(fs/(freqRes*fc))>=nVec
 
 # generate initial signals
 sigOrig=np.cos(2*np.pi*np.cumsum(fVec))
@@ -53,13 +55,23 @@ noiseVec=np.sqrt(nPwr)*np.random.normal(0.0,0.707,nVec)
 sigAWGN=sigOrig+noiseVec
 
 # build FIR lowpass filter
-hLpf=scpSignal.firwin(nVec-1,5*fc/fs)
-hLpfDelay=int(1/tDur*np.mean(scpSignal.group_delay((hLpf,1))))
+if freqResFlag is True:
+    filterTaps=nVec-1
+else:
+     filterTaps=int(fs/(fc*5)/2)*2-1   
+hLpf=scpSignal.firwin(filterTaps,5*fc/fs)
+if freqResFlag is True:
+    hLpfDelay=int(1/tDur*np.mean(scpSignal.group_delay((hLpf,1))))
 
-# utilize fft convolution to apply FIR filter
-# assumption: sinusoid repeats ad infinitum, not just for sim time
-sigFilt=(np.fft.ifft(np.fft.fft(hLpf,nVec)*np.fft.fft(sigAWGN))).real
-sigFilt=np.roll(sigFilt,int(hLpfDelay))
+# apply filtering
+if freqResFlag is True:
+    # utilize fft convolution to apply FIR filter
+    # assumption: sinusoid repeats ad infinitum, not just for sim time
+    sigFilt=scpSignal.fftconvolve(sigAWGN,hLpf,'same')
+    sigFilt=np.roll(sigFilt,int(hLpfDelay))
+else:
+    # linear convolution
+    sigFilt=scpSignal.lfilter(hLpf,1,sigAWGN)
 
 # plot sinusoid with noise
 noisyPlt,=plt.plot(tVec,sigAWGN)
