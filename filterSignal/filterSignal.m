@@ -36,7 +36,7 @@ clear all; close all; clc;
 fs=1e6;
 % Center frequency (Hz)
 fc=15;
-% Signal time duration (sec)
+% Simulation time (sec)
 tDur=1.0;
 % Signal Power (Watt)
 nPwr=1;
@@ -61,6 +61,7 @@ hLpf=transpose(fir1(nVec-1,5*fc/fs));
 hLpfDelay=round(mean(grpdelay(hLpf,1)));
 
 % utilize fft convolution to apply filter
+% assumption: sinusoid repeats ad infinitum, not just for sim time
 sigFilt=real(ifft(fft(hLpf).*fft(sigAWGN)));
 sigFilt=circshift(sigFilt,[-hLpfDelay,0]);
 
