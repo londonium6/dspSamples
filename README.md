@@ -1,2 +1,2 @@
-# fiverrSamples
-sample MATLAB scripts for Fiverr demonstration. londonium6@berkeley.edu
+# dspSamples
+collection of scripts in NumPy and MATLAB 
